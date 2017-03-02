@@ -15,11 +15,11 @@ import (
 // for now it allows basic access
 // to throughput rates and queue size averaged over seconds, minutes and hours
 type Observer struct {
-	redisClient   *redis.Client `json:"-"`
-	redisHost     string        `json:"-"`
-	redisPort     string        `json:"-"`
-	redisPassword string        `json:"-"`
-	redisDb       int64         `json:"-"`
+	RedisClient   *redis.Client `json:"-"`
+	RedisHost     string        `json:"-"`
+	RedisPort     string        `json:"-"`
+	RedisPassword string        `json:"-"`
+	RedisDb       int64         `json:"-"`
 	Stats         map[string]*QueueStat
 }
 
@@ -54,13 +54,13 @@ type ConsumerStat struct {
 // NewObserver returns an Oberserver to monitor different statistics from redis
 func NewObserver(redisHost, redisPort, redisPassword string, redisDb int64) *Observer {
 	q := &Observer{
-		redisHost:     redisHost,
-		redisPort:     redisPort,
-		redisPassword: redisPassword,
-		redisDb:       redisDb,
+		RedisHost:     redisHost,
+		RedisPort:     redisPort,
+		RedisPassword: redisPassword,
+		RedisDb:       redisDb,
 		Stats:         make(map[string]*QueueStat),
 	}
-	q.redisClient = redis.NewClient(&redis.Options{
+	q.RedisClient = redis.NewClient(&redis.Options{
 		Addr:     redisHost + ":" + redisPort,
 		Password: redisPassword,
 		DB:       redisDb,
@@ -82,11 +82,11 @@ func (observer *Observer) UpdateAllStats() {
 
 // GetAllQueues returns a list of all registed queues
 func (observer *Observer) GetAllQueues() (queues []string, err error) {
-	return observer.redisClient.SMembers(masterQueueKey()).Result()
+	return observer.RedisClient.SMembers(masterQueueKey()).Result()
 }
 
 func (observer *Observer) getConsumers(queue string) (consumers []string, err error) {
-	return observer.redisClient.SMembers(queueWorkersKey(queue)).Result()
+	return observer.RedisClient.SMembers(queueWorkersKey(queue)).Result()
 }
 
 // UpdateQueueStats fetches stats for one specific queue and its consumers
@@ -135,15 +135,15 @@ func (observer *Observer) UpdateQueueStats(queue string) {
 // TODO the current implementation does not handle gaps for queue size
 // which appear for queues with little or no traffic
 func (observer *Observer) fetchStat(keyName string, seconds int64) int64 {
+	var keys []string
 	now := time.Now().UTC().Unix() - 2 // we can only look for already written stats
-	keys := make([]string, 0)
 
 	for i := int64(0); i < seconds; i++ {
 		key := fmt.Sprintf("%s::%d", keyName, now)
 		keys = append(keys, key)
 		now--
 	}
-	vals, err := observer.redisClient.MGet(keys...).Result()
+	vals, err := observer.RedisClient.MGet(keys...).Result()
 	if err != nil {
 		return 0
 	}
