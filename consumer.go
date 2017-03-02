@@ -149,6 +149,21 @@ func (consumer *Consumer) RequeueWorking() error {
 	return nil
 }
 
+// RequeueFailed requeues all packages from failed to input
+func (consumer *Consumer) RequeueFailed() error {
+	length := consumer.Queue.redisClient.LLen(queueFailedKey(consumer.Queue.Name)).Val()
+	for i := int64(0); i < length; i++ {
+		err := consumer.Queue.redisClient.RPopLPush(
+			queueFailedKey(consumer.Queue.Name),
+			queueInputKey(consumer.Queue.Name),
+		).Err()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (consumer *Consumer) ackPackage(p *Package) error {
 	return consumer.Queue.redisClient.RPop(consumerWorkingQueueKey(consumer.Queue.Name, consumer.Name)).Err()
 }
@@ -205,6 +220,7 @@ func (consumer *Consumer) startHeartbeat() {
 	return
 }
 
+// Quit tells the consumer to quit processing
 func (consumer *Consumer) Quit() {
 	if consumer.cancel == nil {
 		return
