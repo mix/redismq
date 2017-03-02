@@ -6,7 +6,7 @@ Note: This project is no longer actively maintained. Please refer to its spiritu
 
 # redismq
 
-[![Build Status](https://secure.travis-ci.org/adjust/redismq.png)](http://travis-ci.org/adjust/redismq) [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/adjust/redismq) 
+[![Build Status](https://img.shields.io/circleci/project/mix/redismq/master.svg?style=flat-square "Build Status")](https://circleci.com/gh/mix/redismq/tree/master)
 
 ## What is this
 
@@ -41,7 +41,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/adjust/redismq"
+	"github.com/mix/redismq"
 )
 
 func main() {
