@@ -1,0 +1,14 @@
+machine:
+  services:
+    - redis
+dependencies:
+  pre:
+    - rm -rf ~/.go_workspace/*
+  override:
+    - go get -u gopkg.in/redis.v3 github.com/matttproud/gocheck github.com/jstemmer/go-junit-report
+test:
+  pre:
+    - go tool vet -v ./*.go
+  override:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit
+    - go test -p 1 -v -race . | go-junit-report > $CIRCLE_TEST_REPORTS/junit/report.xml; exit ${PIPESTATUS[0]}
